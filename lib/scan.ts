@@ -126,15 +126,18 @@ export async function processJobs(p: Profile, raw: RawJob[], deadlineMs: number)
   }
 
   // Auto-tailor the best new matches so they're ready to apply to when the user opens the dashboard.
-  const max = parseInt(process.env.AUTO_TAILOR_MAX ?? "5", 10);
+  const max = parseInt(process.env.AUTO_TAILOR_MAX ?? "12", 10);
   let tailored = 0;
-  for (const m of newMatches.sort((a, b) => b.score - a.score).slice(0, max)) {
-    if (Date.now() > deadlineMs - 40_000) break;
-    try {
-      if (await tailorForJob(db, p, { id: m.id, title: m.j.title, company: m.j.company, location: m.j.location, description: m.j.description })) tailored++;
-    } catch {
-      /* the user can still tailor manually from the job page */
-    }
+  const best = newMatches.sort((a, b) => b.score - a.score).slice(0, max);
+  // Run in parallel groups so a dozen resumes fit inside the time budget.
+  for (let i = 0; i < best.length; i += 4) {
+    if (Date.now() > deadlineMs - 45_000) break;
+    const results = await Promise.allSettled(
+      best.slice(i, i + 4).map((m) =>
+        tailorForJob(db, p, { id: m.id, title: m.j.title, company: m.j.company, location: m.j.location, description: m.j.description }),
+      ),
+    );
+    tailored += results.filter((r) => r.status === "fulfilled" && r.value).length;
   }
   return { candidates: fresh.length, matched: newMatches.length, tailored };
 }

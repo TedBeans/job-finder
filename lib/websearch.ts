@@ -14,12 +14,20 @@ type Found = {
 };
 
 /** Use Claude's built-in web search to find fresh postings on company career pages / ATS boards. */
-export async function searchJobsWithClaude(profile: Profile, max = 12): Promise<RawJob[]> {
+/** One focused search per target title (up to 4, in parallel) so we get breadth instead of one thin list. */
+export async function searchJobsWithClaude(profile: Profile, perTitle = 12): Promise<RawJob[]> {
+  const titles = profile.target_titles.length ? profile.target_titles.slice(0, 4) : [""];
+  const groups = await Promise.allSettled(titles.map((t) => searchOne(profile, t, perTitle)));
+  return groups.flatMap((g) => (g.status === "fulfilled" ? g.value : []));
+}
+
+async function searchOne(profile: Profile, title: string, max: number): Promise<RawJob[]> {
   const c = claude();
   const prompt = `Find up to ${max} CURRENT, open job postings (posted in the last ~14 days if possible) that fit this candidate. Prefer direct company career pages or ATS boards (Greenhouse, Lever, Ashby, Workday, company sites) over aggregators. Every URL must be a real posting you actually saw in search results - never guess URLs.
 
 Candidate headline: ${profile.headline ?? ""}
-Target titles: ${profile.target_titles.join(", ")}
+Focus on this title (and close variants): ${title || profile.target_titles.join(", ")}
+(All target titles: ${profile.target_titles.join(", ")})
 Seniority: ${profile.seniority.join(", ")}
 Locations: ${profile.locations.join(", ")}
 Work modes accepted: ${profile.work_modes.join(", ")}
