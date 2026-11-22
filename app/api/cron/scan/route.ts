@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   // Oldest-scanned first, so if time runs out the same friend isn't always skipped.
   for (const p of (data ?? []) as Profile[]) {
     if (Date.now() > deadline - 30_000) break;
-    results[p.email ?? p.user_id] = await scanUser(p, deadline);
+    results[p.email ?? p.user_id] = await scanUser(p, Math.min(deadline, Date.now() + 110_000)); // ~2 min per friend
   }
   return NextResponse.json({ ok: true, results });
 }

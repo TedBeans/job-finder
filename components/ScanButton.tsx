@@ -17,7 +17,7 @@ export function ScanButton() {
           try {
             const r = await fetch("/api/scan", { method: "POST" });
             const j = await r.json();
-            setMsg(j.error ? `Error: ${j.error}` : `Scanned ${j.candidates} new jobs, ${j.matched} matches${j.error ? ` (${j.error})` : ""}`);
+            setMsg(j.error ? `Error: ${j.error}` : `Scanned ${j.candidates} new jobs, ${j.matched} matches, ${j.tailored ?? 0} resumes tailored${j.error ? ` (${j.error})` : ""}`);
             router.refresh();
           } catch {
             setMsg("Scan failed or timed out - check back shortly.");

@@ -98,3 +98,11 @@ export async function setAppStatus(fd: FormData) {
   revalidatePath(`/jobs/${jobId}`);
   revalidatePath("/");
 }
+
+export async function rotateIngestToken() {
+  const auth = await requireUser();
+  if (!auth) redirect("/login");
+  const { randomBytes } = await import("node:crypto");
+  await auth.sb.from("profiles").update({ ingest_token: randomBytes(24).toString("hex") }).eq("user_id", auth.user.id);
+  revalidatePath("/profile");
+}

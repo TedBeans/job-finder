@@ -5,6 +5,7 @@ import { TailorPanel } from "@/components/TailorPanel";
 import { StatusForm } from "@/components/StatusForm";
 import { setAppStatus } from "@/app/actions";
 import { renderMd } from "@/lib/md";
+import { CopyButton } from "@/components/CopyButton";
 import type { Job } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,24 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
     sb.from("tailored_resumes").select("*").eq("user_id", user.id).eq("job_id", id).maybeSingle(),
     sb.from("applications").select("*").eq("user_id", user.id).eq("job_id", id).maybeSingle(),
   ]);
+
+  const musePrompt = tailored
+    ? `Help me apply to this job: ${job.title} at ${job.company}.
+Application page: ${job.url}
+
+Steps:
+1. Open the application page in your browser.
+2. Fill in the application using ONLY the information in my resume below. If a question isn't covered by my resume (work authorization, demographics, salary expectations, referral, etc.), stop and ask me instead of guessing.
+3. Where the form takes text or an upload, use my tailored resume and cover letter below.
+4. Do not create accounts, enter passwords, or enter government ID numbers - tell me and I'll do that part.
+5. Before you submit, show me a summary of everything you entered and wait for my approval.
+
+MY TAILORED RESUME:
+${tailored.resume_md}
+
+MY COVER LETTER:
+${tailored.cover_letter_md ?? ""}`
+    : "";
 
   return (
     <div className="grid gap-5 lg:grid-cols-3">
@@ -58,6 +77,11 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
           <h2 className="font-semibold">Apply</h2>
           <p className="text-sm text-slate-600">Open the posting, paste in the tailored resume, submit, then mark it applied so it&apos;s tracked.</p>
           <a href={job.url} target="_blank" rel="noopener noreferrer" className="btn w-full">Open application page</a>
+          {tailored ? (
+            <CopyButton text={musePrompt} label="Hand to Muse (copy prompt)" className="btn-ghost w-full" />
+          ) : (
+            <p className="text-xs text-slate-500">Tailor your resume first to enable &ldquo;Hand to Muse&rdquo;.</p>
+          )}
           <form action={setAppStatus}>
             <input type="hidden" name="jobId" value={id} />
             <input type="hidden" name="status" value="applied" />

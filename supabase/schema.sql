@@ -107,3 +107,6 @@ create policy "own apps" on applications for all using (auth.uid() = user_id) wi
 drop policy if exists "own runs" on scan_runs;
 create policy "own runs" on scan_runs for select using (auth.uid() = user_id);
 -- Writes to jobs and scan_runs happen server-side with the service-role key.
+
+-- Per-user token so an outside agent (Muse, Claude, a script) can push jobs in via /api/ingest
+alter table profiles add column if not exists ingest_token text unique;

@@ -13,10 +13,11 @@ export default async function Home() {
   const { data: profile } = await sb.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
   if (!profile?.resume_text) redirect("/profile?welcome=1");
 
-  const [{ data: top }, { data: apps }, { count: newCount }] = await Promise.all([
+  const [{ data: top }, { data: apps }, { count: newCount }, { data: ready }] = await Promise.all([
     sb.from("matches").select("score, reasons, job:jobs(*)").eq("user_id", user.id).eq("status", "new").order("score", { ascending: false }).limit(5),
     sb.from("applications").select("status").eq("user_id", user.id),
     sb.from("matches").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "new"),
+    sb.from("applications").select("job:jobs(*)").eq("user_id", user.id).eq("status", "ready").order("updated_at", { ascending: false }).limit(10),
   ]);
   const counts = Object.fromEntries(APP_STATUSES.map((s) => [s, (apps ?? []).filter((a) => a.status === s).length]));
 
@@ -40,6 +41,27 @@ export default async function Home() {
           </Link>
         ))}
       </div>
+
+      {(ready?.length ?? 0) > 0 && (
+        <section>
+          <h2 className="mb-2 font-semibold">Ready to apply ({ready!.length})</h2>
+          <p className="mb-2 text-sm text-slate-600">Resumes are already tailored. Open one, apply, then mark it applied.</p>
+          <div className="space-y-2">
+            {ready!.map((r) => {
+              const job = r.job as unknown as Job;
+              return (
+                <Link key={job.id} href={`/jobs/${job.id}`} className="card flex items-center justify-between hover:border-slate-400">
+                  <div>
+                    <div className="font-medium">{job.title}</div>
+                    <div className="text-sm text-slate-600">{job.company} - {job.location ?? "Location n/a"}</div>
+                  </div>
+                  <span className="btn">Apply</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section>
         <div className="mb-2 flex items-center justify-between">
