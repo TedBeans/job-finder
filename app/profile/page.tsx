@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/supabase";
 import { saveProfile } from "../actions";
 import { ResumeUpload } from "@/components/ResumeUpload";
+import { ProfileAssist } from "@/components/ProfileAssist";
 import { ScoreSlider } from "@/components/ScoreSlider";
 import type { Profile } from "@/lib/types";
 
@@ -29,6 +30,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       <h1 className="text-3xl font-extrabold">{welcome ? "Let's set up your profile" : "Profile"}</h1>
       <p className="mt-1 text-muted">The more specific you are, the better your matches. Your resume is the source of truth: tailored versions only reuse what&apos;s in it.</p>
 
+      <ProfileAssist />
+
       <div className="mt-6 divide-y divide-line border-t border-line">
         <Section title="About you" hint="Shown on your dashboard and used in your tailored resumes.">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -37,7 +40,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </div>
         </Section>
 
-        <Section title="Resume" hint="Upload a PDF, Word or text file, or paste it in. You can edit the text before saving.">
+        <Section title="Resume" hint="Upload a PDF, Word file, text file or a photo, or paste it in. Scanned resumes work too. You can edit the text before saving.">
           <ResumeUpload targetId="resume_text" />
           <textarea id="resume_text" name="resume_text" defaultValue={p?.resume_text ?? ""} rows={14} required aria-label="Resume text" className="input font-mono text-[13px]" />
         </Section>
