@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/supabase";
 import { saveProfile } from "../actions";
 import { ResumeUpload } from "@/components/ResumeUpload";
-import { ProfileAssist } from "@/components/ProfileAssist";
+import Link from "next/link";
 import { ScoreSlider } from "@/components/ScoreSlider";
 import type { Profile } from "@/lib/types";
 
@@ -30,7 +30,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       <h1 className="text-3xl font-extrabold">{welcome ? "Let's set up your profile" : "Profile"}</h1>
       <p className="mt-1 text-muted">The more specific you are, the better your matches. Your resume is the source of truth: tailored versions only reuse what&apos;s in it.</p>
 
-      <ProfileAssist />
+      <div className="sheet mt-6 flex flex-wrap items-center justify-between gap-4 p-5">
+        <div className="max-w-md"><h2 className="font-bold">Answer a few questions about your ideal job</h2><p className="hint mt-1">Tap through about ten short steps. Your answers fill in the job details below.</p></div>
+        <Link href="/questionnaire" className="btn-accent">{p?.target_titles?.length ? "Update my answers" : "Start the questions"}</Link>
+      </div>
 
       <div className="mt-6 divide-y divide-line border-t border-line">
         <Section title="About you" hint="Shown on your dashboard and used in your tailored resumes.">
@@ -46,7 +49,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         </Section>
 
         <Section title="The job you want" hint="Your job-search task uses all of this to find and score postings.">
-          <div><label className="label" htmlFor="target_titles">Job titles</label><input id="target_titles" name="target_titles" defaultValue={p?.target_titles?.join(", ")} placeholder="Operations manager, supply chain analyst" className="input" required /><p className="hint mt-1">Separate with commas.</p></div>
+          <div><label className="label" htmlFor="target_titles">Job titles</label><input id="target_titles" name="target_titles" defaultValue={p?.target_titles?.join(", ")} placeholder="Operations manager, supply chain analyst" className="input" /><p className="hint mt-1">Separate with commas.</p></div>
           <div>
             <span className="label">Seniority</span>
             <div className="flex flex-wrap gap-2">{levels.map((l) => (<label key={l} className="chip"><input type="checkbox" name="seniority" value={l} defaultChecked={p?.seniority?.includes(l)} /><span>{l}</span></label>))}</div>

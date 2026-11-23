@@ -16,6 +16,7 @@ export default async function Home() {
   const { sb, user } = auth;
   const { data: profile } = await sb.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
   if (!profile?.resume_text) redirect("/profile?welcome=1");
+  if (!profile.target_titles?.length) redirect("/questionnaire");
 
   const [{ data: top }, { data: apps }, { data: ready }] = await Promise.all([
     sb.from("matches").select("score, reasons, job:jobs(*)").eq("user_id", user.id).eq("status", "new").order("score", { ascending: false }).limit(6),

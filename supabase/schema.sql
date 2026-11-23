@@ -110,3 +110,6 @@ create policy "own runs" on scan_runs for select using (auth.uid() = user_id);
 
 -- Per-user token so an outside agent (Muse, Claude, a script) can push jobs in via /api/ingest
 alter table profiles add column if not exists ingest_token text unique;
+
+-- Raw questionnaire answers, so people can reopen and edit them
+alter table profiles add column if not exists preferences jsonb;

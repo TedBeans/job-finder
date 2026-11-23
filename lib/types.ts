@@ -16,6 +16,7 @@ export type Profile = {
   min_score: number;
   scan_enabled: boolean;
   ingest_token?: string | null;
+  preferences?: unknown;
   last_scan_at: string | null;
 };
 

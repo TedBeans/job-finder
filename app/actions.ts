@@ -68,7 +68,7 @@ export async function saveProfile(fd: FormData) {
     updated_at: new Date().toISOString(),
   });
   revalidatePath("/", "layout");
-  redirect("/?saved=1");
+  redirect(titles.length ? "/?saved=1" : "/questionnaire");
 }
 
 export async function setMatchStatus(jobId: string, status: "new" | "saved" | "dismissed") {
@@ -118,4 +118,19 @@ export async function importFromAgent(_: unknown, fd: FormData) {
   const r = await ingestAgentJobs(p, parsed.jobs);
   revalidatePath("/", "layout");
   return { ok: `Imported ${r.received} jobs: ${r.matched} new matches, ${r.tailored} tailored resumes.` };
+}
+
+export async function saveQuestionnaire(answers: import("@/lib/questionnaire").Answers) {
+  const auth = await requireUser();
+  if (!auth) return { error: "Please sign in again." };
+  const { compose } = await import("@/lib/questionnaire");
+  const c = compose(answers);
+  if (!c.target_titles.length) return { error: "Add at least one job title you'd like." };
+  const base = { user_id: auth.user.id, email: auth.user.email, ...c, updated_at: new Date().toISOString() };
+  let { error } = await auth.sb.from("profiles").upsert({ ...base, preferences: answers });
+  // If the optional "preferences" column hasn't been added yet, still save everything else.
+  if (error && /preferences/i.test(error.message)) ({ error } = await auth.sb.from("profiles").upsert(base));
+  if (error) return { error: "Couldn't save. Please try again." };
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
