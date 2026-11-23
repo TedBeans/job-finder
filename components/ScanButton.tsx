@@ -27,7 +27,7 @@ export function ScanButton() {
       >
         {busy ? "Scanning (1-3 min)..." : "Scan now"}
       </button>
-      {msg && <span className="text-sm text-slate-600">{msg}</span>}
+      {msg && <span className="text-sm text-muted">{msg}</span>}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { TailorPanel } from "@/components/TailorPanel";
 import { StatusForm } from "@/components/StatusForm";
 import { setAppStatus } from "@/app/actions";
 import { renderMd } from "@/lib/md";
+import { Score } from "@/components/Score";
 import { CopyButton } from "@/components/CopyButton";
 import { ImportBox } from "@/components/ImportBox";
 import { aiEnabled } from "@/lib/ai";
@@ -46,33 +47,34 @@ ${tailored.cover_letter_md ?? ""}`
     : "";
 
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <div className="space-y-4 lg:col-span-2">
-        <Link href="/jobs" className="text-sm text-slate-500">&larr; Matches</Link>
-        <div className="card">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-bold">{job.title}</h1>
-              <p className="text-slate-600">{job.company} - {job.location ?? "n/a"} {job.work_mode && `- ${job.work_mode}`}</p>
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="space-y-5 lg:col-span-2">
+        <Link href="/jobs" className="text-sm font-semibold text-muted hover:text-ink">Back to matches</Link>
+        <div className="sheet p-6 sm:p-8">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">{job.title}</h1>
+              <p className="mt-1 text-muted">{job.company}{job.location ? `, ${job.location}` : ""}</p>
+              {job.work_mode && <span className="mt-2 inline-block rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold capitalize text-brand">{job.work_mode}</span>}
             </div>
-            {match && <div className="rounded-lg bg-slate-900 px-3 py-2 text-xl font-bold text-white">{match.score}</div>}
+            {match && <Score score={match.score} size="lg" className="shrink-0" />}
           </div>
-          {match && (
-            <div className="mt-3 text-sm">
-              <ul className="list-disc pl-5">{match.reasons?.map((r: string, i: number) => <li key={i}>{r}</li>)}</ul>
-              <ul className="mt-1 list-disc pl-5 text-amber-700">{match.concerns?.map((r: string, i: number) => <li key={i}>{r}</li>)}</ul>
+          {match && (match.reasons?.length > 0 || match.concerns?.length > 0) && (
+            <div className="mt-5 grid gap-4 border-t border-line pt-5 text-sm sm:grid-cols-2">
+              <div><h3 className="mb-1 font-bold">Why it fits</h3><ul className="list-disc space-y-1 pl-5">{match.reasons?.map((r: string, i: number) => <li key={i}>{r}</li>)}</ul></div>
+              {match.concerns?.length > 0 && <div><h3 className="mb-1 font-bold text-warn">Worth checking</h3><ul className="list-disc space-y-1 pl-5 text-warn">{match.concerns.map((r: string, i: number) => <li key={i}>{r}</li>)}</ul></div>}
             </div>
           )}
-          <p className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap text-sm text-slate-700">{job.description ?? "No description captured - open the posting."}</p>
+          <p className="mt-5 max-h-72 overflow-auto whitespace-pre-wrap border-t border-line pt-5 text-sm leading-relaxed text-ink/80">{job.description ?? "No description saved. Open the posting for details."}</p>
         </div>
 
         {aiEnabled() ? (
           <TailorPanel jobId={id} resume={tailored?.resume_md} cover={tailored?.cover_letter_md ?? undefined} changes={tailored?.changes ?? undefined} />
         ) : (
           <div className="card space-y-3">
-            <h2 className="font-semibold">Tailored resume &amp; cover letter</h2>
+            <h2 className="text-lg font-bold">Tailored resume and cover letter</h2>
             {tailored?.changes && tailored.changes.length > 0 && (
-              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">{tailored.changes.map((c: string, i: number) => <li key={i} className={c.startsWith("GAP:") ? "text-amber-700" : ""}>{c}</li>)}</ul>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-ink">{tailored.changes.map((c: string, i: number) => <li key={i} className={c.startsWith("GAP:") ? "text-warn" : ""}>{c}</li>)}</ul>
             )}
             {tailored && (
               <div className="flex flex-wrap gap-2">
@@ -86,7 +88,7 @@ ${tailored.cover_letter_md ?? ""}`
               <summary className="cursor-pointer text-sm font-medium">{tailored ? "Redo with your agent" : "Get a tailored resume from your agent"}</summary>
               <div className="mt-2 space-y-2">
                 <CopyButton text={buildTailorPrompt(prof as never, job)} label="Copy tailoring prompt" className="btn" />
-                <p className="text-xs text-slate-500">Paste it into Claude or Muse, then paste the JSON reply here:</p>
+                <p className="text-xs text-muted">Paste it into Claude or Muse, then paste the JSON reply here:</p>
                 <ImportBox />
               </div>
             </details>
@@ -95,21 +97,21 @@ ${tailored.cover_letter_md ?? ""}`
 
         {tailored && (
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="card md text-sm" dangerouslySetInnerHTML={{ __html: renderMd(tailored.resume_md) }} />
-            <div className="card md text-sm" dangerouslySetInnerHTML={{ __html: renderMd(tailored.cover_letter_md ?? "") }} />
+            <div className="md rounded-2xl bg-white p-6 text-sm shadow-[0_12px_32px_-16px_rgba(29,27,46,.25)]" dangerouslySetInnerHTML={{ __html: renderMd(tailored.resume_md) }} />
+            <div className="md rounded-2xl bg-white p-6 text-sm shadow-[0_12px_32px_-16px_rgba(29,27,46,.25)]" dangerouslySetInnerHTML={{ __html: renderMd(tailored.cover_letter_md ?? "") }} />
           </div>
         )}
       </div>
 
-      <aside className="space-y-4">
+      <aside className="space-y-4 lg:sticky lg:top-8 lg:self-start">
         <div className="card space-y-3">
-          <h2 className="font-semibold">Apply</h2>
-          <p className="text-sm text-slate-600">Open the posting, paste in the tailored resume, submit, then mark it applied so it&apos;s tracked.</p>
-          <a href={job.url} target="_blank" rel="noopener noreferrer" className="btn w-full">Open application page</a>
+          <h2 className="text-lg font-bold">Apply</h2>
+          <p className="hint">Open the posting, use the tailored resume, submit, then mark it applied so it&apos;s tracked.</p>
+          <a href={job.url} target="_blank" rel="noopener noreferrer" className="btn-accent w-full">Open application page</a>
           {tailored ? (
             <CopyButton text={musePrompt} label="Hand to Muse (copy prompt)" className="btn-ghost w-full" />
           ) : (
-            <p className="text-xs text-slate-500">Tailor your resume first to enable &ldquo;Hand to Muse&rdquo;.</p>
+            <p className="text-xs text-muted">Tailor your resume first to enable &ldquo;Hand to Muse&rdquo;.</p>
           )}
           <form action={setAppStatus}>
             <input type="hidden" name="jobId" value={id} />
@@ -118,7 +120,7 @@ ${tailored.cover_letter_md ?? ""}`
           </form>
         </div>
         <div className="card">
-          <h2 className="mb-2 font-semibold">Status</h2>
+          <h2 className="mb-3 text-lg font-bold">Status</h2>
           <StatusForm jobId={id} status={app?.status ?? "saved"} notes={app?.notes} followUp={app?.follow_up_at} />
         </div>
       </aside>

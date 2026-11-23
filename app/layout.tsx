@@ -1,8 +1,9 @@
+import "@fontsource-variable/bricolage-grotesque";
+import "@fontsource-variable/figtree";
 import "./globals.css";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase";
-import { signOut } from "./actions";
+import { Nav } from "@/components/Nav";
 
 export const metadata: Metadata = { title: "Job Finder", description: "Daily job matches, tailored resumes, application tracking" };
 
@@ -12,19 +13,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body>
-        {data.user && (
-          <header className="no-print border-b border-slate-200 bg-white">
-            <nav className="mx-auto flex max-w-6xl items-center gap-5 px-4 py-3 text-sm">
-              <Link href="/" className="font-bold">Job Finder</Link>
-              <Link href="/agent" className="text-slate-600 hover:text-slate-900">Find jobs</Link>
-              <Link href="/jobs" className="text-slate-600 hover:text-slate-900">Matches</Link>
-              <Link href="/applications" className="text-slate-600 hover:text-slate-900">Applications</Link>
-              <Link href="/profile" className="text-slate-600 hover:text-slate-900">Profile</Link>
-              <form action={signOut} className="ml-auto"><button className="text-slate-500 hover:text-slate-900">Sign out</button></form>
-            </nav>
-          </header>
+        {data.user ? (
+          <div className="lg:grid lg:grid-cols-[232px_1fr]">
+            <Nav email={data.user.email ?? ""} />
+            <main className="mx-auto w-full max-w-5xl px-5 py-8 lg:px-10 lg:py-10">{children}</main>
+          </div>
+        ) : (
+          children
         )}
-        <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
       </body>
     </html>
   );

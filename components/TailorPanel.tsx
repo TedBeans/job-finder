@@ -12,7 +12,7 @@ export function TailorPanel({ jobId, resume, cover, changes }: Props) {
   return (
     <div className="card space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Tailored resume &amp; cover letter</h2>
+        <h2 className="text-lg font-bold">Tailored resume and cover letter</h2>
         <button
           className="btn"
           disabled={busy}
@@ -29,11 +29,11 @@ export function TailorPanel({ jobId, resume, cover, changes }: Props) {
           {busy ? "Writing..." : resume ? "Regenerate" : "Tailor my resume"}
         </button>
       </div>
-      {err && <p className="text-sm text-red-600">{err}</p>}
+      {err && <p className="text-sm text-danger">{err}</p>}
       {changes && changes.length > 0 && (
-        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+        <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
           {changes.map((c, i) => (
-            <li key={i} className={c.startsWith("GAP:") ? "text-amber-700" : ""}>{c}</li>
+            <li key={i} className={c.startsWith("GAP:") ? "text-warn" : ""}>{c}</li>
           ))}
         </ul>
       )}

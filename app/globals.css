@@ -1,10 +1,52 @@
 @import "tailwindcss";
-body { @apply bg-slate-50 text-slate-900 antialiased; }
-.card { @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
-.btn { @apply inline-flex items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50; }
-.btn-ghost { @apply inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50; }
-.input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm; }
-.label { @apply mb-1 block text-sm font-medium text-slate-700; }
-.md h1 { @apply text-xl font-bold; } .md h2 { @apply mt-4 border-b border-slate-300 text-sm font-bold uppercase tracking-wide; }
-.md h3 { @apply mt-2 font-semibold; } .md ul { @apply ml-5 list-disc; } .md p { @apply my-1; }
+
+@theme {
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-canvas: #f0eff7;
+  --color-ink: #1d1b2e;
+  --color-muted: #6a6780;
+  --color-line: #dedbee;
+  --color-brand: #5b3df5;
+  --color-brand-dark: #4a2fd6;
+  --color-brand-soft: #e8e4fe;
+  --color-sun: #f7b32b;
+  --color-sun-soft: #fff1cf;
+  --color-warn: #a25a08;
+  --color-good: #0e8a45;
+  --color-danger: #c62828;
+}
+
+body { @apply bg-canvas font-sans text-ink antialiased; }
+:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.015em; }
+
+/* surfaces */
+.sheet { @apply rounded-[20px] border border-line bg-white; }
+.card { @apply rounded-2xl border border-line bg-white p-5; }
+
+/* controls */
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark active:scale-[.98] disabled:opacity-50; }
+.btn-accent { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-semibold text-ink transition hover:brightness-95 active:scale-[.98] disabled:opacity-50; }
+.btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-brand-soft active:scale-[.98] disabled:opacity-50; }
+.btn-sm { @apply px-3 py-1.5 text-[13px]; }
+.input { @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm placeholder:text-[#9a97ae] focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15; }
+.label { @apply mb-1.5 block text-sm font-semibold; }
+.hint { @apply text-[13px] leading-snug text-muted; }
+
+/* selectable pills (checkbox) */
+.chip { @apply cursor-pointer; }
+.chip input { @apply sr-only; }
+.chip span { @apply inline-flex rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-medium capitalize transition hover:border-brand; }
+.chip input:checked + span { @apply border-brand bg-brand text-white; }
+.chip input:focus-visible + span { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+
+/* resume / cover letter preview */
+.md h1 { @apply font-display text-xl font-bold; }
+.md h2 { @apply mt-4 border-b border-line pb-0.5 text-sm font-bold; }
+.md h3 { @apply mt-2 font-semibold; }
+.md ul { @apply ml-5 list-disc; }
+.md p { @apply my-1; }
+
 @media print { .no-print { display: none !important; } body { background: white; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

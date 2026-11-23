@@ -14,7 +14,7 @@ export default async function Print({ params, searchParams }: { params: Promise<
   const md = doc === "cover" ? data.cover_letter_md ?? "" : data.resume_md;
   return (
     <div className="mx-auto max-w-[8.5in] bg-white p-8 text-[11pt] leading-snug">
-      <p className="no-print mb-4 text-sm text-slate-500">Use your browser&apos;s Print &rarr; Save as PDF.</p>
+      <p className="no-print mb-4 text-sm text-muted">Use your browser&apos;s Print, then Save as PDF.</p>
       <div className="md" dangerouslySetInnerHTML={{ __html: renderMd(md) }} />
     </div>
   );

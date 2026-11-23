@@ -25,8 +25,8 @@ export function ResumeUpload({ targetId }: { targetId: string }) {
           setBusy(false);
         }}
       />
-      {busy && <span className="ml-2 text-sm text-slate-500">Reading...</span>}
-      {err && <span className="ml-2 text-sm text-red-600">{err}</span>}
+      {busy && <span className="ml-2 text-sm text-muted">Reading...</span>}
+      {err && <span className="ml-2 text-sm text-danger">{err}</span>}
     </div>
   );
 }
