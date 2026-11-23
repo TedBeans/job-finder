@@ -6,6 +6,9 @@ import { StatusForm } from "@/components/StatusForm";
 import { setAppStatus } from "@/app/actions";
 import { renderMd } from "@/lib/md";
 import { CopyButton } from "@/components/CopyButton";
+import { ImportBox } from "@/components/ImportBox";
+import { aiEnabled } from "@/lib/ai";
+import { buildTailorPrompt } from "@/lib/agentPrompt";
 import type { Job } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +20,8 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const { sb, user } = auth;
   const { data: job } = await sb.from("jobs").select("*").eq("id", id).single<Job>();
   if (!job) notFound();
-  const [{ data: match }, { data: tailored }, { data: app }] = await Promise.all([
+  const [{ data: prof }, { data: match }, { data: tailored }, { data: app }] = await Promise.all([
+    sb.from("profiles").select("*").eq("user_id", user.id).single(),
     sb.from("matches").select("*").eq("user_id", user.id).eq("job_id", id).maybeSingle(),
     sb.from("tailored_resumes").select("*").eq("user_id", user.id).eq("job_id", id).maybeSingle(),
     sb.from("applications").select("*").eq("user_id", user.id).eq("job_id", id).maybeSingle(),
@@ -62,7 +66,32 @@ ${tailored.cover_letter_md ?? ""}`
           <p className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap text-sm text-slate-700">{job.description ?? "No description captured - open the posting."}</p>
         </div>
 
-        <TailorPanel jobId={id} resume={tailored?.resume_md} cover={tailored?.cover_letter_md ?? undefined} changes={tailored?.changes ?? undefined} />
+        {aiEnabled() ? (
+          <TailorPanel jobId={id} resume={tailored?.resume_md} cover={tailored?.cover_letter_md ?? undefined} changes={tailored?.changes ?? undefined} />
+        ) : (
+          <div className="card space-y-3">
+            <h2 className="font-semibold">Tailored resume &amp; cover letter</h2>
+            {tailored?.changes && tailored.changes.length > 0 && (
+              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">{tailored.changes.map((c: string, i: number) => <li key={i} className={c.startsWith("GAP:") ? "text-amber-700" : ""}>{c}</li>)}</ul>
+            )}
+            {tailored && (
+              <div className="flex flex-wrap gap-2">
+                <CopyButton text={tailored.resume_md} label="Copy resume" />
+                <CopyButton text={tailored.cover_letter_md ?? ""} label="Copy cover letter" />
+                <a className="btn-ghost" href={`/jobs/${id}/print?doc=resume`} target="_blank">Print / save PDF - resume</a>
+                <a className="btn-ghost" href={`/jobs/${id}/print?doc=cover`} target="_blank">Print / save PDF - cover letter</a>
+              </div>
+            )}
+            <details>
+              <summary className="cursor-pointer text-sm font-medium">{tailored ? "Redo with your agent" : "Get a tailored resume from your agent"}</summary>
+              <div className="mt-2 space-y-2">
+                <CopyButton text={buildTailorPrompt(prof as never, job)} label="Copy tailoring prompt" className="btn" />
+                <p className="text-xs text-slate-500">Paste it into Claude or Muse, then paste the JSON reply here:</p>
+                <ImportBox />
+              </div>
+            </details>
+          </div>
+        )}
 
         {tailored && (
           <div className="grid gap-4 md:grid-cols-2">

@@ -60,23 +60,20 @@ Reply with ONLY a JSON array: [{"i":0,"score":85,"reasons":["...","..."],"concer
 type NewMatch = { id: string; j: RawJob; score: number };
 
 /** Shared by the daily scan and the /api/ingest endpoint: dedupe, filter, score, store, then auto-tailor the best. */
-export async function processJobs(p: Profile, raw: RawJob[], deadlineMs: number) {
+/** Dedupe, optionally hard-filter, reuse existing job rows, insert the rest. Returns job ids paired with the raw job. */
+export async function upsertJobs(p: Profile, raw: RawJob[], applyFilters: boolean): Promise<{ id: string; j: RawJob }[]> {
   const db = supabaseAdmin();
-  // dedupe within batch
   const seen = new Set<string>();
   const unique = raw.filter((j) => {
     const k = key(j.company, j.title);
     if (seen.has(k)) return false;
     seen.add(k);
-    return passesHardFilters(j, p);
+    return !applyFilters || passesHardFilters(j, p);
   });
-
-  // reuse existing job rows (same source id or same company+title in last 60 days)
   const since = new Date(Date.now() - 60 * 864e5).toISOString();
   const { data: existing } = await db.from("jobs").select("id, source, external_id, company, title").gte("found_at", since);
   const byKey = new Map((existing ?? []).map((e) => [key(e.company, e.title), e.id as string]));
   const bySrc = new Map((existing ?? []).map((e) => [`${e.source}:${e.external_id}`, e.id as string]));
-
   const withIds: { id: string; j: RawJob }[] = [];
   const toInsert: RawJob[] = [];
   for (const j of unique) {
@@ -93,6 +90,12 @@ export async function processJobs(p: Profile, raw: RawJob[], deadlineMs: number)
       if (id) withIds.push({ id, j });
     }
   }
+  return withIds;
+}
+
+export async function processJobs(p: Profile, raw: RawJob[], deadlineMs: number) {
+  const db = supabaseAdmin();
+  const withIds = await upsertJobs(p, raw, true);
 
   // skip jobs this user has already been shown
   const { data: seenRows } = await db.from("matches").select("job_id").eq("user_id", p.user_id);

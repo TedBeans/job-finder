@@ -1,5 +1,7 @@
 # Job Finder
 
+**No-AI-cost mode (default):** the app has no AI key. Each person copies a ready-made job-search task from **Find jobs** into their own Claude or Muse (on their own plan). The agent searches, scores, and writes tailored resumes, then the results reach the dashboard automatically (`POST /api/ingest`, if the agent can make web requests) or by pasting the JSON reply into the Import box. Set `ANTHROPIC_API_KEY` only if you later want the server to scan/tailor on its own (daily Vercel cron + "Scan now"); everything below about server-side scanning applies only then.
+
 Daily job scan -> match scoring -> resume tailoring -> application tracking, for you and your friends.
 
 **Stack:** Next.js 16 (App Router) on Vercel, Supabase (auth + Postgres), Claude API, The Muse public jobs API.

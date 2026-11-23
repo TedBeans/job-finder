@@ -106,3 +106,16 @@ export async function rotateIngestToken() {
   await auth.sb.from("profiles").update({ ingest_token: randomBytes(24).toString("hex") }).eq("user_id", auth.user.id);
   revalidatePath("/profile");
 }
+
+export async function importFromAgent(_: unknown, fd: FormData) {
+  const auth = await requireUser();
+  if (!auth) return { error: "Please sign in again." };
+  const { parseIngestText, ingestAgentJobs } = await import("@/lib/ingest");
+  const parsed = parseIngestText(String(fd.get("payload") ?? ""));
+  if ("error" in parsed) return { error: parsed.error };
+  const { data: p } = await auth.sb.from("profiles").select("*").eq("user_id", auth.user.id).single();
+  if (!p) return { error: "Set up your profile first." };
+  const r = await ingestAgentJobs(p, parsed.jobs);
+  revalidatePath("/", "layout");
+  return { ok: `Imported ${r.received} jobs: ${r.matched} new matches, ${r.tailored} tailored resumes.` };
+}

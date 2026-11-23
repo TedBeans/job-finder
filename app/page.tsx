@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/supabase";
 import { ScanButton } from "@/components/ScanButton";
+import { aiEnabled } from "@/lib/ai";
 import { APP_STATUSES, type Job } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,10 +28,10 @@ export default async function Home() {
         <div>
           <h1 className="text-2xl font-bold">Hi {profile.full_name?.split(" ")[0] || "there"}</h1>
           <p className="text-sm text-slate-600">
-            {newCount ?? 0} new matches. Last scan: {profile.last_scan_at ? new Date(profile.last_scan_at).toLocaleString() : "never"}. Daily scan is {profile.scan_enabled ? "on" : "off"}.
+            {newCount ?? 0} new matches. Last update: {profile.last_scan_at ? new Date(profile.last_scan_at).toLocaleString() : "never"}.
           </p>
         </div>
-        <ScanButton />
+        {aiEnabled() ? <ScanButton /> : <Link href="/agent" className="btn">Find jobs</Link>}
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
@@ -82,7 +83,7 @@ export default async function Home() {
               </Link>
             );
           })}
-          {!top?.length && <p className="card text-sm text-slate-600">No matches yet. Hit &ldquo;Scan now&rdquo; or wait for tomorrow&apos;s daily scan.</p>}
+          {!top?.length && <p className="card text-sm text-slate-600">No matches yet. Go to Find jobs to get your job-search task.</p>}
         </div>
       </section>
     </div>

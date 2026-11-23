@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { scanUser } from "@/lib/scan";
+import { aiEnabled } from "@/lib/ai";
 import type { Profile } from "@/lib/types";
 
 export const maxDuration = 300;
@@ -10,6 +11,7 @@ export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  if (!aiEnabled()) return NextResponse.json({ ok: true, skipped: "No ANTHROPIC_API_KEY; agents push jobs via /api/ingest" });
   const deadline = Date.now() + 270_000;
   const { data } = await supabaseAdmin()
     .from("profiles")

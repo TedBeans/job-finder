@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/supabase";
 import { tailorForJob } from "@/lib/tailor";
+import { aiEnabled } from "@/lib/ai";
 import type { Job, Profile } from "@/lib/types";
 
 export const maxDuration = 120;
 
 export async function POST(req: Request) {
+  if (!aiEnabled()) return NextResponse.json({ error: "Server-side tailoring is off." }, { status: 400 });
   const auth = await requireUser();
   if (!auth) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { jobId } = (await req.json()) as { jobId: string };

@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/supabase";
-import { saveProfile, rotateIngestToken } from "../actions";
-import { headers } from "next/headers";
-import { CopyButton } from "@/components/CopyButton";
+import { saveProfile } from "../actions";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import type { Profile } from "@/lib/types";
 
@@ -17,12 +15,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const modes = p?.work_modes ?? ["remote", "hybrid", "onsite"];
   const levels = ["entry", "mid", "senior", "lead", "manager", "director", "executive"];
 
-  const h = await headers();
-  const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
-  const endpoint = `${origin}/api/ingest`;
-  const agentPrompt = p?.ingest_token
-    ? `Every morning, search the web for current job postings that match what I'm looking for: ${p.target_titles.join(", ")}; ${p.work_modes.join("/")}; ${p.locations.join(", ")}${p.min_salary ? `; at least $${p.min_salary}/yr` : ""}. Skip anything that violates: ${p.deal_breakers ?? "n/a"}. Send up to 20 real, open postings (only URLs you actually opened) as a JSON POST to ${endpoint} with header "Authorization: Bearer ${p.ingest_token}" and body {"jobs":[{"title","company","url","location","work_mode":"remote|hybrid|onsite","salary_min","salary_max","description"}]}. Include the full description text when you can.`
-    : "";
   return (
     <div className="mx-auto max-w-3xl space-y-5">
     <form action={saveProfile} className="mx-auto max-w-3xl space-y-5">
@@ -62,30 +54,15 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       </div>
 
       <div className="card space-y-3">
-        <h2 className="font-semibold">Scanning</h2>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="scan_enabled" defaultChecked={p?.scan_enabled ?? true} /> Scan for new jobs every day</label>
+        <h2 className="font-semibold">Matching</h2>
+        <input type="hidden" name="scan_enabled" value="on" />
         <div><label className="label">Minimum match score to show (30-95)</label><input type="number" name="min_score" min={30} max={95} defaultValue={p?.min_score ?? 70} className="input w-28" /></div>
       </div>
 
       <button className="btn">Save profile</button>
+      <p className="text-xs text-slate-500">After saving, go to <b>Find jobs</b> to get your job-search task.</p>
     </form>
 
-    {p && (
-      <div className="card space-y-3">
-        <h2 className="font-semibold">Use your own AI agent to find jobs (optional)</h2>
-        <p className="text-sm text-slate-600">
-          The app already scans daily on its own. If you also use an agent like Muse, you can give it a standing daily task that sends jobs here; they get scored, matched and tailored the same way.
-          Whether your agent can make web requests depends on the product - test it once.
-        </p>
-        {p.ingest_token ? (
-          <>
-            <CopyButton text={agentPrompt} label="Copy daily task for my agent" />
-            <p className="text-xs text-slate-500">Contains your private token - don&apos;t share it. Rotating invalidates the old one.</p>
-          </>
-        ) : null}
-        <form action={rotateIngestToken}><button className="btn-ghost">{p.ingest_token ? "Rotate token" : "Create token"}</button></form>
-      </div>
-    )}
     </div>
   );
 }
