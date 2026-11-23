@@ -113,3 +113,9 @@ alter table profiles add column if not exists ingest_token text unique;
 
 -- Raw questionnaire answers, so people can reopen and edit them
 alter table profiles add column if not exists preferences jsonb;
+
+-- Table access for the signed-in and server roles (newer Supabase projects don't grant this automatically).
+-- Row-level security above still limits each person to their own rows.
+grant usage on schema public to anon, authenticated, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
+alter default privileges in schema public grant select, insert, update, delete on tables to authenticated, service_role;
