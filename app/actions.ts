@@ -129,8 +129,15 @@ export async function saveQuestionnaire(answers: import("@/lib/questionnaire").A
   const base = { user_id: auth.user.id, email: auth.user.email, ...c, updated_at: new Date().toISOString() };
   let { error } = await auth.sb.from("profiles").upsert({ ...base, preferences: answers });
   // If the optional "preferences" column hasn't been added yet, still save everything else.
-  if (error && /preferences/i.test(error.message)) ({ error } = await auth.sb.from("profiles").upsert(base));
-  if (error) return { error: "Couldn't save. Please try again." };
+  // If anything goes wrong with the optional answers column, still save the profile fields themselves.
+  if (error) {
+    console.error("saveQuestionnaire first attempt:", error.message);
+    ({ error } = await auth.sb.from("profiles").upsert(base));
+  }
+  if (error) {
+    console.error("saveQuestionnaire failed:", error.code, error.message);
+    return { error: `Couldn't save: ${error.message}` };
+  }
   revalidatePath("/", "layout");
   return { ok: true };
 }
